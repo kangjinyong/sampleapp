@@ -4,13 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace sampleapp.function
 {
-    public class TimerTrigger1
+    public class TimerTriggerTest
     {
         private readonly ILogger _logger;
 
-        public TimerTrigger1(ILoggerFactory loggerFactory)
+        public TimerTriggerTest(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.CreateLogger<TimerTrigger1>();
+            _logger = loggerFactory.CreateLogger<TimerTriggerTest>();
         }
 
         [Function("TimerTriggerTest")]
