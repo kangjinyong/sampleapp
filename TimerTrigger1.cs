@@ -6,7 +6,7 @@ namespace sampleapp.function
     public class TimerTrigger1
     {
         [Function("TimerTrigger1")]
-        public void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
+        public void Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             
