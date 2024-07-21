@@ -6,21 +6,14 @@ namespace sampleapp.function
 {
     public class TimerTrigger1
     {
-        private readonly ILogger _logger;
-
-        public TimerTrigger1(ILoggerFactory loggerFactory)
-        {
-            _logger = loggerFactory.CreateLogger<TimerTrigger1>();
-        }
-
         [Function("TimerTrigger1")]
-        public void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
+        public void Run([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, ILogger log)
         {
-            _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
+            log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             
             if (myTimer.ScheduleStatus is not null)
             {
-                _logger.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
+                log.LogInformation($"Next timer schedule at: {myTimer.ScheduleStatus.Next}");
             }
         }
     }
