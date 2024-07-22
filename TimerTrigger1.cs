@@ -19,7 +19,7 @@ namespace sampleapp.function
         public async Task Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation("Testing blob access");
-            
+
             try {
                 string connectionString = await GetConnectionString();
                 string containerName = "dtl-backup";
@@ -46,7 +46,12 @@ namespace sampleapp.function
 
         private async Task<string> GetConnectionString() {
             var kvUri = new Uri(Environment.GetEnvironmentVariable("KeyVaultUri")!);
-            var secretClient = new SecretClient(vaultUri: kvUri, credential: new DefaultAzureCredential());
+            string userAssignedClientId = Environment.GetEnvironmentVariable("UserAssignedClientId")!;
+            var credentialOptions = new DefaultAzureCredentialOptions
+            {
+                ManagedIdentityClientId = userAssignedClientId
+            };
+            var secretClient = new SecretClient(vaultUri: kvUri, credential: new DefaultAzureCredential(credentialOptions));
             KeyVaultSecret secret = await secretClient.GetSecretAsync("StorageAccount1ConnectionString");
             return secret.Value;
         }
