@@ -19,14 +19,21 @@ namespace sampleapp.function
         public async Task Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation("Testing blob access");
-            string connectionString = await GetConnectionString();
-            string containerName = "dtl-backup";
+            
+            try {
+                string connectionString = await GetConnectionString();
+                string containerName = "dtl-backup";
 
-            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            await foreach (var blobItem in containerClient.GetBlobsAsync())
+                BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+                BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                await foreach (var blobItem in containerClient.GetBlobsAsync())
+                {
+                    _logger.LogInformation($"Blob name: {blobItem.Name}");
+                }
+            }
+            catch (Exception ex)
             {
-                _logger.LogInformation($"Blob name: {blobItem.Name}");
+                _logger.LogError($"An error occurred: {ex.Message}", ex);
             }
 
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
