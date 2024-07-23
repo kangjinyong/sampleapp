@@ -64,31 +64,15 @@ namespace sampleapp.function
                 string toName = fromNameArray[fromNameArray.Length-1];
                 BlobClient fromClient = containerFrom.GetBlobClient(fromName);
                 _logger.LogInformation(string.Format("fromName: {0}", fromName));
+
+
+                BlobDownloadStreamingResult stream = (await fromClient.DownloadStreamingAsync()).Value;
+
+
                 BlobClient toClient = containerTo.GetBlobClient(toName);
                 _logger.LogInformation(string.Format("toName: {0}", toName));
-                CopyStatus copyStatus = CopyStatus.Pending;
-                _logger.LogInformation(string.Format("URI before: {0}", fromClient.Uri.ToString()));
-                BlobServiceClient blobServiceClient = new BlobServiceClient(fromClient.Uri, GetAzureCredential());
-                _logger.LogInformation(string.Format("URI after: {0}", blobServiceClient.Uri.ToString()));
-                await toClient.StartCopyFromUriAsync(blobServiceClient.Uri);
-                _logger.LogInformation(string.Format("Copying"));
 
-                while (copyStatus == CopyStatus.Pending)
-                {
-                    await Task.Delay(100);
-                    BlobProperties properties = await toClient.GetPropertiesAsync();
-                    copyStatus = properties.CopyStatus;
-                    _logger.LogInformation(string.Format("Copy Status: {0}", copyStatus));
-                }
-
-                if (copyStatus == CopyStatus.Success)
-                {
-                    _logger.LogInformation(string.Format("{0} copied successfully to {1}.", fromName, toName));
-                }
-                else
-                {
-                    _logger.LogInformation(string.Format("{0} copy failed or was canceled.", fromName));
-                }
+                await toClient.UploadAsync(stream.Content, overwrite: true);                
             }
         }
     }
