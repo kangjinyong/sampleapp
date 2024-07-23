@@ -23,7 +23,7 @@ namespace sampleapp.function
                 BlobServiceClient blobServiceClient1 = new BlobServiceClient(await GetConnectionString("1"));
                 BlobServiceClient blobServiceClient2 = new BlobServiceClient(await GetConnectionString("2"));
                 BlobContainerClient containerClient1 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameFrom")!);
-                BlobContainerClient containerClient2 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameTo")!);
+                BlobContainerClient containerClient2 = blobServiceClient2.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameTo")!);
                 await containerClient2.CreateIfNotExistsAsync();
                 await CopyFiles(containerClient1, containerClient2);
             }
