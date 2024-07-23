@@ -20,8 +20,8 @@ namespace sampleapp.function
         public async Task Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer)
         {
             try {
-                BlobServiceClient blobServiceClient1 = new BlobServiceClient(await GetConnectionString("1"));
-                BlobServiceClient blobServiceClient2 = new BlobServiceClient(await GetConnectionString("2"));
+                BlobServiceClient blobServiceClient1 = new BlobServiceClient(new Uri(await GetUri("1")), GetAzureCredential());
+                BlobServiceClient blobServiceClient2 = new BlobServiceClient(new Uri(await GetUri("2")), GetAzureCredential());
                 BlobContainerClient containerClient1 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameFrom")!);
                 BlobContainerClient containerClient2 = blobServiceClient2.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameTo")!);
                 await containerClient2.CreateIfNotExistsAsync();
@@ -40,15 +40,19 @@ namespace sampleapp.function
             }
         }
 
-        private async Task<string> GetConnectionString(string storageAccount) {
-            var kvUri = new Uri(Environment.GetEnvironmentVariable("KeyVaultUri")!);
+        private DefaultAzureCredential GetAzureCredential() {
             string userAssignedClientId = Environment.GetEnvironmentVariable("UserAssignedClientId")!;
             var credentialOptions = new DefaultAzureCredentialOptions
             {
                 ManagedIdentityClientId = userAssignedClientId
             };
-            var secretClient = new SecretClient(vaultUri: kvUri, credential: new DefaultAzureCredential(credentialOptions));
-            KeyVaultSecret secret = await secretClient.GetSecretAsync(string.Format("StorageAccount{0}ConnectionString", storageAccount));
+            return new DefaultAzureCredential(credentialOptions);
+        }
+
+        private async Task<string> GetUri(string storageAccount) {
+            var kvUri = new Uri(Environment.GetEnvironmentVariable("KeyVaultUri")!);
+            var secretClient = new SecretClient(vaultUri: kvUri, credential: GetAzureCredential());
+            KeyVaultSecret secret = await secretClient.GetSecretAsync(string.Format("StorageAccount{0}Uri", storageAccount));
             return secret.Value;
         }
 
