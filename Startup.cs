@@ -10,9 +10,12 @@ namespace sampleapp.function
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            // string blobServiceClientConnectionString = Environment.GetEnvironmentVariable("BlobServiceClientConnectionString");
-            // builder.Services.AddSingleton(new BlobServiceClient(blobServiceClientConnectionString));
-            builder.Services.AddLogging();
+            builder.Services.AddLogging(builder => {
+                builder.AddConsole();
+                builder.AddApplicationInsights(configureTelemetryConfiguration: (config) =>
+                    config.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")!,
+                    configureApplicationInsightsLoggerOptions: (options) => { });
+            });
         }
     }
 }
