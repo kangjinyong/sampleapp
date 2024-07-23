@@ -76,11 +76,11 @@ namespace sampleapp.function
 
                 if (copyStatus == CopyStatus.Success)
                 {
-                    Console.WriteLine(string.Format("{0} copied successfully to {1}.", fromName, toName));
+                    _logger.LogInformation(string.Format("{0} copied successfully to {1}.", fromName, toName));
                 }
                 else
                 {
-                    Console.WriteLine(string.Format("{0} copy failed or was canceled.", fromName));
+                    _logger.LogInformation(string.Format("{0} copy failed or was canceled.", fromName));
                 }
             }
         }
