@@ -5,6 +5,8 @@ using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using System.IO.Compression;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace sampleapp.function
 {
@@ -71,7 +73,18 @@ namespace sampleapp.function
                     using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
                         Stream unzippedStream = archive.Entries[0].Open();
                         await toClient.UploadAsync(unzippedStream, overwrite: true);
-                        _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}."), fromName, toName);
+                        _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
+
+                        using (SHA512 sha512 = SHA512.Create())
+                        {
+                            byte[] hash = await Task.Run(() => sha512.ComputeHash(unzippedStream));
+                            StringBuilder sb = new StringBuilder();
+                            foreach (byte b in hash)
+                            {
+                                sb.Append(b.ToString("x2"));
+                            }
+                            _logger.LogInformation(string.Format("Checksum: {0}", sb.ToString()));
+                        }
                     }
                 }     
                 catch (Exception ex) {
