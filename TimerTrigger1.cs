@@ -67,7 +67,9 @@ namespace sampleapp.function
                 BlobClient toClient = containerTo.GetBlobClient(toName);
                 _logger.LogInformation(string.Format("toName: {0}", toName));
                 CopyStatus copyStatus = CopyStatus.Pending;
-                await toClient.StartCopyFromUriAsync(fromClient.Uri);
+                _logger.LogInformation(string.Format("URI: {0}", fromClient.Uri.ToString()));
+                BlobServiceClient blobServiceClient = new BlobServiceClient(fromClient.Uri, GetAzureCredential());
+                await toClient.StartCopyFromUriAsync(blobServiceClient.Uri);
                 _logger.LogInformation(string.Format("Copying"));
 
                 while (copyStatus == CopyStatus.Pending)
