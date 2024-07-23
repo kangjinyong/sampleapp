@@ -25,9 +25,7 @@ namespace sampleapp.function
                 BlobServiceClient blobServiceClient1 = new BlobServiceClient(await GetConnectionString("1"));
                 BlobServiceClient blobServiceClient2 = new BlobServiceClient(await GetConnectionString("2"));
                 BlobContainerClient containerClient1 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameFrom")!);
-                _logger.LogInformation("ContainerFrom exists");
                 BlobContainerClient containerClient2 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameTo")!);
-                _logger.LogInformation("ContainerTo exists");
                 await CopyFiles(containerClient1, containerClient2);
             }
             catch (Exception ex)
@@ -62,7 +60,9 @@ namespace sampleapp.function
                 string[] fromNameArray = fromName.Split("/");
                 string toName = fromNameArray[fromNameArray.Length-1];
                 BlobClient fromClient = containerFrom.GetBlobClient(blobItem.Name);
+                _logger.LogInformation("fromClient exists");
                 BlobClient toClient = containerTo.GetBlobClient(toName);
+                _logger.LogInformation("toClient exists");
                 CopyStatus copyStatus = CopyStatus.Pending;
                 await toClient.StartCopyFromUriAsync(fromClient.Uri);
 
