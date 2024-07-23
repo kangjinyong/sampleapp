@@ -24,7 +24,6 @@ namespace sampleapp.function
                 BlobServiceClient blobServiceClient2 = new BlobServiceClient(await GetConnectionString("2"));
                 BlobContainerClient containerClient1 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameFrom")!);
                 BlobContainerClient containerClient2 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameTo")!);
-                await containerClient2.CreateIfNotExistsAsync();
                 await CopyFiles(containerClient1, containerClient2);
             }
             catch (Exception ex)
