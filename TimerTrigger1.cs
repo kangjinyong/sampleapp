@@ -76,8 +76,9 @@ namespace sampleapp.function
                     }
                     _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}."), fromName, toName);
                 }     
-                catch {
+                catch (Exception ex) {
                     _logger.LogInformation(string.Format("{0} cannot be unzipped and copied.", fromName));
+                    _logger.LogInformation(string.Format("Error detected: {0}", ex.Message));
                 }        
             }
         }
