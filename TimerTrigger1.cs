@@ -4,6 +4,7 @@ using Azure.Security.KeyVault.Secrets;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using System.IO.Compression;
 
 namespace sampleapp.function
 {
@@ -61,18 +62,23 @@ namespace sampleapp.function
             {
                 string fromName = blobItem.Name;
                 string[] fromNameArray = fromName.Split("/");
-                string toName = fromNameArray[fromNameArray.Length-1];
+                string toName = string.Format("{0}.csv", fromNameArray[fromNameArray.Length-1].Split(".")[0]);
                 BlobClient fromClient = containerFrom.GetBlobClient(fromName);
+                BlobClient toClient = containerTo.GetBlobClient(toName);
                 _logger.LogInformation(string.Format("fromName: {0}", fromName));
-
+                _logger.LogInformation(string.Format("toName: {0}", toName));
 
                 BlobDownloadStreamingResult stream = (await fromClient.DownloadStreamingAsync()).Value;
 
-
-                BlobClient toClient = containerTo.GetBlobClient(toName);
-                _logger.LogInformation(string.Format("toName: {0}", toName));
-
-                await toClient.UploadAsync(stream.Content, overwrite: true);                
+                try {
+                    using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
+                        await toClient.UploadAsync(archive.Entries[0].Open(), overwrite: true);  
+                    }
+                    _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}."), fromName, toName);
+                }     
+                catch {
+                    _logger.LogInformation(string.Format("{0} cannot be unzipped and copied.", fromName));
+                }        
             }
         }
     }
