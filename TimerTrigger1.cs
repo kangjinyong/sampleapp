@@ -19,13 +19,12 @@ namespace sampleapp.function
         [Function("TimerTrigger1")]
         public async Task Run([TimerTrigger("0 0 22 * * *")] TimerInfo myTimer)
         {
-            _logger.LogInformation("Testing blob access");
-
             try {
                 BlobServiceClient blobServiceClient1 = new BlobServiceClient(await GetConnectionString("1"));
                 BlobServiceClient blobServiceClient2 = new BlobServiceClient(await GetConnectionString("2"));
                 BlobContainerClient containerClient1 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameFrom")!);
                 BlobContainerClient containerClient2 = blobServiceClient1.GetBlobContainerClient(Environment.GetEnvironmentVariable("ContainerNameTo")!);
+                await containerClient2.CreateIfNotExistsAsync();
                 await CopyFiles(containerClient1, containerClient2);
             }
             catch (Exception ex)
@@ -59,12 +58,13 @@ namespace sampleapp.function
                 string fromName = blobItem.Name;
                 string[] fromNameArray = fromName.Split("/");
                 string toName = fromNameArray[fromNameArray.Length-1];
-                BlobClient fromClient = containerFrom.GetBlobClient(blobItem.Name);
-                _logger.LogInformation("fromClient exists");
+                BlobClient fromClient = containerFrom.GetBlobClient(fromName);
+                _logger.LogInformation(string.Format("fromName: {0}", fromName));
                 BlobClient toClient = containerTo.GetBlobClient(toName);
-                _logger.LogInformation("toClient exists");
+                _logger.LogInformation(string.Format("toName: {0}", toName));
                 CopyStatus copyStatus = CopyStatus.Pending;
                 await toClient.StartCopyFromUriAsync(fromClient.Uri);
+                _logger.LogInformation(string.Format("Copying"));
 
                 while (copyStatus == CopyStatus.Pending)
                 {
