@@ -71,6 +71,7 @@ namespace sampleapp.function
                     await Task.Delay(100);
                     BlobProperties properties = await toClient.GetPropertiesAsync();
                     copyStatus = properties.CopyStatus;
+                    _logger.LogInformation(string.Format("Copy Status: {0}", copyStatus));
                 }
 
                 if (copyStatus == CopyStatus.Success)
