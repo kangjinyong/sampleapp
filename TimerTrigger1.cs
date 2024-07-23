@@ -65,16 +65,14 @@ namespace sampleapp.function
                 string toName = string.Format("{0}.csv", fromNameArray[fromNameArray.Length-1].Split(".")[0]);
                 BlobClient fromClient = containerFrom.GetBlobClient(fromName);
                 BlobClient toClient = containerTo.GetBlobClient(toName);
-                _logger.LogInformation(string.Format("fromName: {0}", fromName));
-                _logger.LogInformation(string.Format("toName: {0}", toName));
-
                 BlobDownloadStreamingResult stream = (await fromClient.DownloadStreamingAsync()).Value;
 
                 try {
                     using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
-                        await toClient.UploadAsync(archive.Entries[0].Open(), overwrite: true);  
+                        Stream unzippedStream = archive.Entries[0].Open();
+                        await toClient.UploadAsync(unzippedStream, overwrite: true);
+                        _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}."), fromName, toName);
                     }
-                    _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}."), fromName, toName);
                 }     
                 catch (Exception ex) {
                     _logger.LogInformation(string.Format("{0} cannot be unzipped and copied.", fromName));
