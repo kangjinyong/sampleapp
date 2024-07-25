@@ -80,19 +80,23 @@ namespace sampleapp.function
 
                         using (SHA256 sha256 = SHA256.Create())
                         {
-                            unzippedStream.Position = 0;
-                            byte[] hash = sha256.ComputeHash(unzippedStream);
-                            StringBuilder sb = new StringBuilder();
-                            foreach (byte b in hash)
+                            using (MemoryStream ms = new MemoryStream())
                             {
-                                sb.Append(b.ToString("x2"));
+                                unzippedStream.CopyTo(ms);
+                                byte[] hash = sha256.ComputeHash(ms.ToArray());
+                                StringBuilder sb = new StringBuilder();
+                                foreach (byte b in hash)
+                                {
+                                    sb.Append(b.ToString("x2"));
+                                }
+                                checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                             }
-                            checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                         }
                     }
                 }     
-                catch {
+                catch (Exception ex) {
                     _logger.LogInformation(string.Format("{0} cannot be unzipped and copied.", fromName));
+                    _logger.LogInformation(string.Format("Error message: {0}", ex.Message));
                 } 
             }
             BlobClient checksumClient = containerTo.GetBlobClient(checksumFilename);
