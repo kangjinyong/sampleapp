@@ -73,21 +73,29 @@ namespace sampleapp.function
                 BlobDownloadStreamingResult stream = (await fromClient.DownloadStreamingAsync()).Value;
 
                 try {
-                    using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Update)) {
+                    using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
                         Stream unzippedStream = archive.Entries[0].Open();
-                        await toClient.UploadAsync(unzippedStream, overwrite: true);
-                        _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
 
-                        unzippedStream.Position = 0;
-                        using (SHA256 sha256 = SHA256.Create())
+                        using (MemoryStream bufferStream = new MemoryStream())
                         {
-                            byte[] hash = sha256.ComputeHash(unzippedStream);
-                            StringBuilder sb = new StringBuilder();
-                            foreach (byte b in hash)
+                            unzippedStream.CopyTo(bufferStream);
+                            MemoryStream duplicatedStream = new MemoryStream(bufferStream.ToArray())
                             {
-                                sb.Append(b.ToString("x2"));
+                                Position = 0
+                            };
+                            using (SHA256 sha256 = SHA256.Create())
+                            {
+                                byte[] hash = sha256.ComputeHash(duplicatedStream);
+                                StringBuilder sb = new StringBuilder();
+                                foreach (byte b in hash)
+                                {
+                                    sb.Append(b.ToString("x2"));
+                                }
+                                checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                             }
-                            checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
+                            duplicatedStream.Position = 0;
+                            await toClient.UploadAsync(duplicatedStream, overwrite: true);
+                            _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
                         }
                     }
                 }     
