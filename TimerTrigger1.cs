@@ -75,28 +75,24 @@ namespace sampleapp.function
                 try {
                     using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
                         Stream unzippedStream = archive.Entries[0].Open();
-                        await toClient.UploadAsync(unzippedStream, overwrite: true);
-                        _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
 
                         using (SHA256 sha256 = SHA256.Create())
                         {
-                            using (MemoryStream ms = new MemoryStream())
+                            byte[] hash = sha256.ComputeHash(unzippedStream);
+                            StringBuilder sb = new StringBuilder();
+                            foreach (byte b in hash)
                             {
-                                unzippedStream.CopyTo(ms);
-                                byte[] hash = sha256.ComputeHash(ms.ToArray());
-                                StringBuilder sb = new StringBuilder();
-                                foreach (byte b in hash)
-                                {
-                                    sb.Append(b.ToString("x2"));
-                                }
-                                checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
+                                sb.Append(b.ToString("x2"));
                             }
+                            checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                         }
+                        
+                        await toClient.UploadAsync(unzippedStream, overwrite: true);
+                        _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
                     }
                 }     
-                catch (Exception ex) {
+                catch {
                     _logger.LogInformation(string.Format("{0} cannot be unzipped and copied.", fromName));
-                    _logger.LogInformation(string.Format("Error message: {0}", ex.Message));
                 } 
             }
             BlobClient checksumClient = containerTo.GetBlobClient(checksumFilename);
