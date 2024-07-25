@@ -80,7 +80,7 @@ namespace sampleapp.function
 
                         using (SHA256 sha256 = SHA256.Create())
                         {
-                            byte[] hash = sha256.ComputeHash(unzippedStream);
+                            byte[] hash = await Task.Run(() => sha256.ComputeHash(unzippedStream));
                             StringBuilder sb = new StringBuilder();
                             foreach (byte b in hash)
                             {
