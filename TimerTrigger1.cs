@@ -75,18 +75,20 @@ namespace sampleapp.function
                 try {
                     using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
                         Stream unzippedStream = archive.Entries[0].Open();
-
-                        using (SHA256 sha256 = SHA256.Create())
+                        using (MemoryStream ms = new MemoryStream())
                         {
-                            byte[] hash = sha256.ComputeHash(unzippedStream);
-                            StringBuilder sb = new StringBuilder();
-                            foreach (byte b in hash)
+                            unzippedStream.CopyTo(ms);
+                            using (SHA256 sha256 = SHA256.Create())
                             {
-                                sb.Append(b.ToString("x2"));
+                                byte[] hash = sha256.ComputeHash(ms.ToArray());
+                                StringBuilder sb = new StringBuilder();
+                                foreach (byte b in hash)
+                                {
+                                    sb.Append(b.ToString("x2"));
+                                }
+                                checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                             }
-                            checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                         }
-                        
                         await toClient.UploadAsync(unzippedStream, overwrite: true);
                         _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
                     }
