@@ -60,7 +60,7 @@ namespace sampleapp.function
         }
 
         private async Task CopyFiles(BlobContainerClient containerFrom, BlobContainerClient containerTo) {
-            string dateTimeStamp = new DateTimeOffset(DateTime.Now, TimeSpan.FromHours(8)).ToString("yyyyMMddhhmmssfff");
+            string dateTimeStamp = DateTimeOffset.Now.ToOffset(TimeSpan.FromHours(8)).ToString("yyyyMMddhhmmssfff");
             List<string> checksums = new List<string>();
             string checksumFilename = string.Format("{0}/Checksum_{0}.csv", dateTimeStamp);
             await foreach (var blobItem in containerFrom.GetBlobsAsync())
