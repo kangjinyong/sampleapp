@@ -73,24 +73,22 @@ namespace sampleapp.function
                 BlobDownloadStreamingResult stream = (await fromClient.DownloadStreamingAsync()).Value;
 
                 try {
-                    using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Read)) {
+                    using (ZipArchive archive = new ZipArchive(stream.Content, ZipArchiveMode.Update)) {
                         Stream unzippedStream = archive.Entries[0].Open();
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            unzippedStream.CopyTo(ms);
-                            using (SHA256 sha256 = SHA256.Create())
-                            {
-                                byte[] hash = sha256.ComputeHash(ms.ToArray());
-                                StringBuilder sb = new StringBuilder();
-                                foreach (byte b in hash)
-                                {
-                                    sb.Append(b.ToString("x2"));
-                                }
-                                checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
-                            }
-                        }
                         await toClient.UploadAsync(unzippedStream, overwrite: true);
                         _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
+
+                        unzippedStream.Position = 0;
+                        using (SHA256 sha256 = SHA256.Create())
+                        {
+                            byte[] hash = sha256.ComputeHash(unzippedStream);
+                            StringBuilder sb = new StringBuilder();
+                            foreach (byte b in hash)
+                            {
+                                sb.Append(b.ToString("x2"));
+                            }
+                            checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
+                        }
                     }
                 }     
                 catch {
