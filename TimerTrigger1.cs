@@ -79,10 +79,10 @@ namespace sampleapp.function
                         using (MemoryStream bufferStream = new MemoryStream())
                         {
                             unzippedStream.CopyTo(bufferStream);
-                            MemoryStream duplicatedStream = new MemoryStream(bufferStream.ToArray())
-                            {
-                                Position = 0
-                            };
+                            MemoryStream duplicatedStream = new MemoryStream(bufferStream.ToArray());
+                            await toClient.UploadAsync(duplicatedStream, overwrite: true);
+                            _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
+                            duplicatedStream.Position = 0;
                             using (SHA256 sha256 = SHA256.Create())
                             {
                                 byte[] hash = sha256.ComputeHash(duplicatedStream);
@@ -93,9 +93,6 @@ namespace sampleapp.function
                                 }
                                 checksums.Add(string.Format("{0} ~ {1}", toName, sb.ToString()));
                             }
-                            duplicatedStream.Position = 0;
-                            await toClient.UploadAsync(duplicatedStream, overwrite: true);
-                            _logger.LogInformation(string.Format("{0} successfully unzipped and copied to {1}.", fromName, toName));
                         }
                     }
                 }     
